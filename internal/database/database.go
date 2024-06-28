@@ -1,19 +1,22 @@
-package models
+package database
 
 import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func ConnectDB() *gorm.DB {
 	dsn := "root:rc321@tcp(127.0.0.1:3306)/community_voice?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 	if err != nil {
 		panic("failed to connect database")
 	}
-	//err = db.AutoMigrate(CreateDB{})
+	//err = db.AutoMigrate(&reports.Report{})
 	//if err != nil {
-	//	return
+	//	return nil
 	//}
 
 	return db

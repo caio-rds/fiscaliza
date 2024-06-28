@@ -3,7 +3,7 @@ package login
 import (
 	"community_voice/internal/auth"
 	"community_voice/internal/hash"
-	"community_voice/internal/models"
+	"community_voice/internal/user"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -41,7 +41,7 @@ func (l *login) TryLogin(c *gin.Context) {
 		return
 	}
 
-	var user models.User
+	var user user.User
 	l.Find(&user, "username = ?", username)
 	fmt.Println(hash.ComparePassword(user.Password, password))
 	if hash.ComparePassword(user.Password, password) {

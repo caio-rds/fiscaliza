@@ -2,11 +2,11 @@ package user
 
 import (
 	"community_voice/internal/hash"
-	"community_voice/internal/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/mail"
+	"regexp"
 	"strings"
 )
 
@@ -19,8 +19,11 @@ type CreateReq struct {
 }
 
 func (u *CreateReq) validate() (bool, error) {
-	var chars = []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "-", "+", "=", "{", "}", "[", "]", "|",
-		"\\", ":", ";", "\"", "'", "<", ">", ",", ".", "?", "/", "`", "~"}
+
+	specialChars := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};:'",<>./?\\|]`)
+	upperCase := regexp.MustCompile(`[A-Z]`)
+	number := regexp.MustCompile(`[0-9]`)
+
 	_, err := mail.ParseAddress(u.Email)
 	if err != nil {
 		return false, fmt.Errorf("invalid email")
@@ -36,24 +39,15 @@ func (u *CreateReq) validate() (bool, error) {
 		return false, fmt.Errorf("password cannot contain the word 'password'")
 	}
 
-	for _, char := range chars {
-		if strings.Contains(u.Password, char) {
-			break
-		}
+	if !specialChars.MatchString(u.Password) {
 		return false, fmt.Errorf("password must contain at least one special character")
 	}
 
-	for _, char := range u.Password {
-		if int(char) >= 0 || int(char) <= 9 {
-			break
-		}
+	if !number.MatchString(u.Password) {
 		return false, fmt.Errorf("password must contain at least one number")
 	}
 
-	for _, char := range u.Password {
-		if char >= 65 && char <= 90 {
-			break
-		}
+	if !upperCase.MatchString(u.Password) {
 		return false, fmt.Errorf("password must contain at least one uppercase letter")
 	}
 
@@ -85,19 +79,26 @@ func (cr *create) Create(c *gin.Context) {
 		return
 	}
 
-	insert := models.User{
+	if err := cr.DB.Where("username = ?", data.Username).Or("email = ?", data.Email).
+		First(&User{}).Error; err == nil {
+		c.JSON(400, gin.H{
+			"error": "Username already exists",
+		})
+		return
+	}
+
+	insert := User{
 		Username: data.Username,
-		Email:    &data.Email,
+		Email:    data.Email,
 		Password: hash.Password(data.Password),
 		Phone:    data.Phone,
 		Name:     data.Name,
 	}
 
-	fmt.Println(insert.Password)
-
 	cr.DB.Create(&insert)
 
 	c.JSON(200, gin.H{
+		"id":       insert.ID,
 		"username": data.Username,
 		"email":    data.Email,
 		"phone":    data.Phone,

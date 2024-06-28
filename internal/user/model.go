@@ -1,11 +1,11 @@
-package models
+package user
 
 import "time"
 
 type User struct {
 	ID        uint   `gorm:"primaryKey"`
 	Username  string `gorm:"unique"`
-	Email     *string
+	Email     string `gorm:"unique"`
 	Password  string
 	Phone     string
 	Name      string

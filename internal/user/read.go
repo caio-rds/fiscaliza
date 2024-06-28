@@ -1,7 +1,6 @@
 package user
 
 import (
-	"community_voice/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -28,7 +27,7 @@ func (r *read) Read(c *gin.Context) {
 		return
 	}
 
-	var user models.User
+	var user User
 	r.Find(&user, "username = ?", search.Username)
 
 	c.JSON(200, gin.H{
