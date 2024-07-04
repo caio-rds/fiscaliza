@@ -7,11 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type loginReq struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func getToken(username string) (string, error) {
 	token, err := services.GenerateJwt(username)
 	if err != nil {
