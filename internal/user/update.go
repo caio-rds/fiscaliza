@@ -1,15 +1,16 @@
 package user
 
 import (
+	"community_voice/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 type UpdateRequest struct {
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Phone    string `json:"phone"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
 }
 
 type update struct {
@@ -23,15 +24,21 @@ func Update(db *gorm.DB) *update {
 	return &value
 }
 
-func (u *update) UpdateUser(c *gin.Context) {
+func (u *update) UpdateUser(c *gin.Context, username string) {
+	if username == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid credentials",
+		})
+		return
+	}
 	var req UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
 			"error": "Invalid input",
 		})
 	}
-	if err := u.DB.Model(&User{}).Where("username = ?", req.Username).
-		Updates(User{
+	if err := u.DB.Model(&models.User{}).Where("username = ?", username).
+		Updates(models.User{
 			Email: req.Email,
 			Name:  req.Name,
 			Phone: req.Phone,

@@ -1,6 +1,7 @@
-package database
+package services
 
 import (
+	"community_voice/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,10 +15,10 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	//err = db.AutoMigrate(&reports.Report{})
-	//if err != nil {
-	//	return nil
-	//}
+	err = db.AutoMigrate(&models.User{}, &models.Report{}, &models.Recovery{})
+	if err != nil {
+		return nil
+	}
 
 	return db
 }

@@ -1,7 +1,7 @@
 package login
 
 import (
-	"community_voice/internal/auth"
+	"community_voice/internal/services"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -23,9 +23,9 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		claims := &auth.Claims{}
+		claims := &services.Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return auth.JwtKey, nil
+			return services.JwtKey, nil
 		})
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

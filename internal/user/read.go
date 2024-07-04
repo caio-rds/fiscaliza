@@ -1,7 +1,7 @@
 package user
 
 import (
-	"community_voice/internal/reports"
+	"community_voice/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -18,11 +18,11 @@ type ResponseNoReports struct {
 }
 
 type Response struct {
-	Username string           `json:"username"`
-	Email    string           `json:"email"`
-	Phone    string           `json:"phone"`
-	Name     string           `json:"name"`
-	Reports  []reports.Report `json:"reports"`
+	Username string          `json:"username"`
+	Email    string          `json:"email"`
+	Phone    string          `json:"phone"`
+	Name     string          `json:"name"`
+	Reports  []models.Report `json:"reports"`
 }
 
 type read struct {
@@ -45,9 +45,9 @@ func (r *read) Read(c *gin.Context) {
 
 	posts := c.DefaultQuery("posts", "false")
 	if posts == "true" {
-		var user User
+		var user models.User
 		r.Find(&user, "username = ?", search.Username)
-		var userReports []reports.Report
+		var userReports []models.Report
 		r.Find(&userReports, "username = ?", user.Username)
 		c.JSON(200, Response{
 			Username: user.Username,
@@ -59,8 +59,12 @@ func (r *read) Read(c *gin.Context) {
 		return
 	}
 
-	var user User
+	var user models.User
 	r.Find(&user, "username = ?", search.Username)
+	if user.Username == "" {
+		c.JSON(404, gin.H{"msg": "User not found"})
+		return
+	}
 	c.JSON(200, ResponseNoReports{
 		Username: user.Username,
 		Email:    user.Email,

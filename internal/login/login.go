@@ -1,10 +1,8 @@
 package login
 
 import (
-	"community_voice/internal/auth"
-	"community_voice/internal/hash"
-	"community_voice/internal/user"
-	"fmt"
+	"community_voice/internal/models"
+	"community_voice/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -15,7 +13,7 @@ type loginReq struct {
 }
 
 func getToken(username string) (string, error) {
-	token, err := auth.GenerateJwt(username)
+	token, err := services.GenerateJwt(username)
 	if err != nil {
 		return "", err
 	}
@@ -41,10 +39,9 @@ func (l *login) TryLogin(c *gin.Context) {
 		return
 	}
 
-	var user user.User
-	l.Find(&user, "username = ?", username)
-	fmt.Println(hash.ComparePassword(user.Password, password))
-	if hash.ComparePassword(user.Password, password) {
+	var u models.User
+	l.Find(&u, "username = ?", username)
+	if services.ComparePassword(u.Password, password) {
 		if token, err := getToken(username); err != nil {
 			c.JSON(500, gin.H{"msg": "Internal server error"})
 			return

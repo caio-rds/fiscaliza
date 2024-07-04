@@ -3,6 +3,7 @@ package api
 import (
 	"community_voice/internal/login"
 	"community_voice/internal/reports"
+	"community_voice/internal/services"
 	user2 "community_voice/internal/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -21,13 +22,31 @@ func NewRouter() *router {
 func (rt *router) RouteOne(db *gorm.DB) {
 	r := gin.Default()
 	userRouter := r.Group("/user")
-	user := user2.NewRead(db)
+	uRead := user2.NewRead(db)
 	uCreate := user2.NewCreate(db)
+	uRestore := user2.NewRestore(db)
 	uUpdate := user2.Update(db)
+	uDelete := user2.NewDelete(db)
 	{
-		userRouter.GET("/:username", user.Read)
+		userRouter.GET("/:username", uRead.Read)
 		userRouter.POST("/", uCreate.Create)
-		userRouter.PUT("/", uUpdate.UpdateUser)
+		userRouter.POST("/restore/:user", uRestore.Restore)
+		userRouter.PUT("/", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			uUpdate.UpdateUser(c, username)
+		})
+		userRouter.DELETE("/:username", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			uDelete.Delete(c, username)
+		})
 	}
 	loginRouter := r.Group("/login")
 	tryLogin := login.NewLogin(db)
@@ -42,6 +61,7 @@ func (rt *router) RouteOne(db *gorm.DB) {
 	report := r.Group("/report")
 	reportCreate := reports.NewCreate(db)
 	reportSearch := reports.NewRead(db)
+	reportUpdate := reports.NewUpdate(db)
 	{
 		report.POST("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -51,7 +71,30 @@ func (rt *router) RouteOne(db *gorm.DB) {
 			}
 			reportCreate.Create(c, username)
 		})
+		report.GET("/", reportSearch.ReadAll)
+		report.GET("/nearest", reportSearch.ReadNearest)
 		report.GET("/:id", reportSearch.Read)
+		report.PUT("/:id", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			id := c.Param("id")
+			if id == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+				return
+			}
+			reportUpdate.Update(c, username, id)
+		})
+	}
+
+	recovery := r.Group("/recovery")
+	rec := services.NewRecovery(db)
+	{
+		recovery.POST("/", rec.RequestCode)
+		recovery.POST("/code", rec.ByCode)
+		recovery.POST("/similarity", rec.BySimilarity)
 	}
 
 	if err := r.Run(":8000"); err != nil {

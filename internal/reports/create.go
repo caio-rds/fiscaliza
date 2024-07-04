@@ -1,6 +1,8 @@
 package reports
 
 import (
+	"community_voice/internal/models"
+	"community_voice/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -11,8 +13,6 @@ type RequestReport struct {
 	Report    string `json:"report"`
 	Street    string `json:"street"`
 	District  string `json:"district"`
-	City      string `json:"city"`
-	State     string `json:"state"`
 }
 
 type newReport struct {
@@ -33,14 +33,20 @@ func (r *newReport) Create(c *gin.Context, username string) {
 		return
 	}
 
-	report := Report{
+	coords, err := services.GetCoord(req.Street, req.District)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	report := models.Report{
 		Username:  username,
 		Anonymous: req.Anonymous,
 		Report:    req.Report,
 		Street:    req.Street,
 		District:  req.District,
-		City:      req.City,
-		State:     req.State,
+		Lat:       coords.Latitude,
+		Lon:       coords.Longitude,
 	}
 
 	if err := r.DB.Create(&report).Error; err != nil {
@@ -48,5 +54,5 @@ func (r *newReport) Create(c *gin.Context, username string) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Report created"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Report created", "id": report.ID})
 }

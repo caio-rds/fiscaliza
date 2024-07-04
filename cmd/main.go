@@ -2,12 +2,12 @@ package main
 
 import (
 	"community_voice/internal/api"
-	"community_voice/internal/database"
+	"community_voice/internal/services"
 )
 
 func main() {
 
-	var db = database.ConnectDB()
+	var db = services.ConnectDB()
 
 	router := api.NewRouter()
 	router.RouteOne(db)

@@ -1,7 +1,8 @@
 package user
 
 import (
-	"community_voice/internal/hash"
+	"community_voice/internal/models"
+	"community_voice/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,10 +24,14 @@ func (u *CreateReq) validate() (bool, error) {
 	specialChars := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};:'",<>./?\\|]`)
 	upperCase := regexp.MustCompile(`[A-Z]`)
 	number := regexp.MustCompile(`[0-9]`)
+	phone := regexp.MustCompile(`^\(\d{2}\) \d{5}-\d{4}$`)
 
 	_, err := mail.ParseAddress(u.Email)
 	if err != nil {
 		return false, fmt.Errorf("invalid email")
+	}
+	if !phone.MatchString(u.Phone) {
+		return false, fmt.Errorf("phone number must have (xx)xxxxx-xxxx format")
 	}
 	if len(u.Username) < 3 {
 		return false, fmt.Errorf("username must have at least 3 characters")
@@ -80,22 +85,27 @@ func (cr *create) Create(c *gin.Context) {
 	}
 
 	if err := cr.DB.Where("username = ?", data.Username).Or("email = ?", data.Email).
-		First(&User{}).Error; err == nil {
+		First(&models.User{}).Error; err == nil {
 		c.JSON(400, gin.H{
 			"error": "Username already exists",
 		})
 		return
 	}
 
-	insert := User{
+	insert := models.User{
 		Username: data.Username,
 		Email:    data.Email,
-		Password: hash.Password(data.Password),
+		Password: services.Password(data.Password),
 		Phone:    data.Phone,
 		Name:     data.Name,
 	}
 
-	cr.DB.Create(&insert)
+	if err := cr.DB.Create(&insert).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	c.JSON(200, gin.H{
 		"id":       insert.ID,

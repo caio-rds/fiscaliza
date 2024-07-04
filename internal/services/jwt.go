@@ -1,11 +1,11 @@
-package auth
+package services
 
 import (
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
 
-var JwtKey = []byte("my_secret")
+var JwtKey = []byte("$2a$10$S9YUva5WArXoAcP0zHNM6uQRxAhWpj61ub6TqtyDDHWg5tYqPEeEu")
 
 type Claims struct {
 	Username string `json:"username"`
