@@ -1,8 +1,8 @@
 package reports
 
 import (
-	"community_voice/internal/models"
-	"community_voice/internal/services"
+	"fiscaliza/internal/models"
+	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -11,22 +11,23 @@ import (
 type RequestReport struct {
 	Anonymous int    `json:"anonymous"`
 	Report    string `json:"report"`
+	Type      string `json:"type,omitempty"`
 	Street    string `json:"street"`
 	District  string `json:"district"`
 }
 
-type newReport struct {
+type NewReport struct {
 	*gorm.DB
 }
 
-func NewCreate(db *gorm.DB) *newReport {
-	value := newReport{
+func NewCreate(db *gorm.DB) *NewReport {
+	value := NewReport{
 		db,
 	}
 	return &value
 }
 
-func (r *newReport) Create(c *gin.Context, username string) {
+func (r *NewReport) Create(c *gin.Context, username string) {
 	var req RequestReport
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -39,10 +40,21 @@ func (r *newReport) Create(c *gin.Context, username string) {
 		return
 	}
 
+	if req.Type != "" {
+		_, err = services.GetReportType(req.Type)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		req.Type = "GENERIC"
+	}
+
 	report := models.Report{
 		Username:  username,
 		Anonymous: req.Anonymous,
 		Report:    req.Report,
+		Type:      req.Type,
 		Street:    req.Street,
 		District:  req.District,
 		Lat:       coords.Latitude,

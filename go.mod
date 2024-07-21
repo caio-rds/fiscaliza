@@ -1,4 +1,4 @@
-module community_voice
+module fiscaliza
 
 go 1.22
 

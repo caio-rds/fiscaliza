@@ -1,8 +1,8 @@
 package user
 
 import (
-	"community_voice/internal/models"
-	"community_voice/internal/services"
+	"fiscaliza/internal/models"
+	"fiscaliza/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

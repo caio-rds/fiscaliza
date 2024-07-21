@@ -1,7 +1,7 @@
 package login
 
 import (
-	"community_voice/internal/services"
+	"fiscaliza/internal/services"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"

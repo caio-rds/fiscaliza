@@ -1,7 +1,7 @@
 package services
 
 import (
-	models "community_voice/internal/models"
+	models "fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"math/rand"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"community_voice/internal/api"
-	"community_voice/internal/services"
+	"fiscaliza/internal/api"
+	"fiscaliza/internal/services"
 )
 
 func main() {

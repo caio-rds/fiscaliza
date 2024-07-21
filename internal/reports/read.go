@@ -1,8 +1,8 @@
 package reports
 
 import (
-	"community_voice/internal/models"
-	"community_voice/internal/services"
+	"fiscaliza/internal/models"
+	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
@@ -13,7 +13,7 @@ type RequestFind struct {
 	ID int `uri:"id" binding:"required"`
 }
 
-type read struct {
+type Read struct {
 	*gorm.DB
 }
 
@@ -21,6 +21,7 @@ type ReportResponse struct {
 	Id        uint      `json:"id"`
 	Username  string    `json:"username"`
 	Anonymous int       `json:"anonymous"`
+	Type      *string   `json:"type"`
 	Report    string    `json:"report"`
 	Street    string    `json:"street"`
 	District  string    `json:"district"`
@@ -38,14 +39,14 @@ type Filters struct {
 	Reverse  bool   `json:"created" default:"false"`
 }
 
-func NewRead(db *gorm.DB) *read {
-	value := read{
+func NewRead(db *gorm.DB) *Read {
+	value := Read{
 		db,
 	}
 	return &value
 }
 
-func (r *read) Read(c *gin.Context) {
+func (r *Read) Read(c *gin.Context) {
 	var search *RequestFind
 	if err := c.ShouldBindUri(&search); err != nil {
 		c.JSON(400, gin.H{"msg": err.Error()})
@@ -63,6 +64,7 @@ func (r *read) Read(c *gin.Context) {
 		Username:  report.Username,
 		Anonymous: report.Anonymous,
 		Report:    report.Report,
+		Type:      services.GetReportTypeName(report.Type),
 		Street:    report.Street,
 		District:  report.District,
 		City:      report.City,
@@ -74,7 +76,7 @@ func (r *read) Read(c *gin.Context) {
 	})
 }
 
-func (r *read) ReadAll(c *gin.Context) {
+func (r *Read) ReadAll(c *gin.Context) {
 	var filters Filters
 	var url = c.Request.URL.Query()
 
@@ -128,6 +130,7 @@ func (r *read) ReadAll(c *gin.Context) {
 				Username:  "not available",
 				Anonymous: report.Anonymous,
 				Report:    report.Report,
+				Type:      services.GetReportTypeName(report.Type),
 				Street:    report.Street,
 				District:  report.District,
 				City:      report.City,
@@ -144,6 +147,7 @@ func (r *read) ReadAll(c *gin.Context) {
 			Username:  report.Username,
 			Anonymous: report.Anonymous,
 			Report:    report.Report,
+			Type:      services.GetReportTypeName(report.Type),
 			Street:    report.Street,
 			District:  report.District,
 			City:      report.City,
@@ -153,7 +157,6 @@ func (r *read) ReadAll(c *gin.Context) {
 			Lat:       report.Lat,
 			Lon:       report.Lon,
 		})
-
 	}
 	if !filters.Reverse {
 		for i, j := 0, len(response)-1; i < j; i, j = i+1, j-1 {
@@ -170,7 +173,7 @@ type NearestReports struct {
 	Range float64 `json:"range" default:"1.0"`
 }
 
-func (r *read) ReadNearest(c *gin.Context) {
+func (r *Read) ReadNearest(c *gin.Context) {
 	var currentCoords NearestReports
 	var url = c.Request.URL.Query()
 
@@ -206,6 +209,7 @@ func (r *read) ReadNearest(c *gin.Context) {
 					Username:  "not available",
 					Anonymous: report.Anonymous,
 					Report:    report.Report,
+					Type:      services.GetReportTypeName(report.Type),
 					Street:    report.Street,
 					District:  report.District,
 					City:      report.City,
@@ -222,6 +226,7 @@ func (r *read) ReadNearest(c *gin.Context) {
 				Username:  report.Username,
 				Anonymous: report.Anonymous,
 				Report:    report.Report,
+				Type:      services.GetReportTypeName(report.Type),
 				Street:    report.Street,
 				District:  report.District,
 				City:      report.City,

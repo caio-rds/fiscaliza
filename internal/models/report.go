@@ -9,6 +9,7 @@ type Report struct {
 	ID        uint   `gorm:"primaryKey"`
 	Username  string `gorm:"not null"`
 	Anonymous int    `gorm:"not null"`
+	Type      string `gorm:"not null, default:'GENERIC'"`
 	Report    string `gorm:"not null"`
 	Street    string `gorm:"not null"`
 	District  string `gorm:"not null"`

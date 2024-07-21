@@ -1,7 +1,7 @@
 package services
 
 import (
-	"community_voice/internal/models"
+	"fiscaliza/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,3 +22,14 @@ func ConnectDB() *gorm.DB {
 
 	return db
 }
+
+//type dbInterface struct {
+//	*gorm.DB
+//}
+//
+//func DB(db *gorm.DB) *dbInterface {
+//	value := dbInterface{
+//		db,
+//	}
+//	return &value
+//}

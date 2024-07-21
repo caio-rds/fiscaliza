@@ -1,7 +1,7 @@
 package reports
 
 import (
-	"community_voice/internal/models"
+	"fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

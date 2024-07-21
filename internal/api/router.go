@@ -1,32 +1,32 @@
 package api
 
 import (
-	"community_voice/internal/login"
-	"community_voice/internal/reports"
-	"community_voice/internal/services"
-	user2 "community_voice/internal/user"
+	"fiscaliza/internal/login"
+	"fiscaliza/internal/reports"
+	"fiscaliza/internal/services"
+	user "fiscaliza/internal/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
 )
 
-type router struct {
+type Router struct {
 }
 
-func NewRouter() *router {
-	value := router{}
+func NewRouter() *Router {
+	value := Router{}
 	return &value
 }
 
-func (rt *router) RouteOne(db *gorm.DB) {
+func (rt *Router) RouteOne(db *gorm.DB) {
 	r := gin.Default()
 	userRouter := r.Group("/user")
-	uRead := user2.NewRead(db)
-	uCreate := user2.NewCreate(db)
-	uRestore := user2.NewRestore(db)
-	uUpdate := user2.Update(db)
-	uDelete := user2.NewDelete(db)
+	uRead := user.NewRead(db)
+	uCreate := user.NewCreate(db)
+	uRestore := user.NewRestore(db)
+	uUpdate := user.Update(db)
+	uDelete := user.NewDelete(db)
 	{
 		userRouter.GET("/:username", uRead.Read)
 		userRouter.POST("/", uCreate.Create)
@@ -62,6 +62,7 @@ func (rt *router) RouteOne(db *gorm.DB) {
 	reportCreate := reports.NewCreate(db)
 	reportSearch := reports.NewRead(db)
 	reportUpdate := reports.NewUpdate(db)
+	reportDelete := reports.NewDelete(db)
 	{
 		report.POST("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -86,6 +87,19 @@ func (rt *router) RouteOne(db *gorm.DB) {
 				return
 			}
 			reportUpdate.Update(c, username, id)
+		})
+		report.DELETE("/:id", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			id := c.Param("id")
+			if id == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+				return
+			}
+			reportDelete.Delete(c, username)
 		})
 	}
 
