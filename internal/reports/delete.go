@@ -7,18 +7,7 @@ import (
 	"time"
 )
 
-type delete struct {
-	*gorm.DB
-}
-
-func NewDelete(db *gorm.DB) *delete {
-	value := delete{
-		db,
-	}
-	return &value
-}
-
-func (d *delete) Delete(c *gin.Context, username string) {
+func (db *StructRep) Delete(c *gin.Context, username string) {
 	var search *RequestFind
 	if err := c.ShouldBindUri(&search); err != nil {
 		c.JSON(400, gin.H{"msg": err.Error()})
@@ -26,7 +15,7 @@ func (d *delete) Delete(c *gin.Context, username string) {
 	}
 
 	var report *models.Report
-	if err := d.First(&report, search.ID).Error; err != nil {
+	if err := db.First(&report, search.ID).Error; err != nil {
 		c.JSON(404, gin.H{"error": "record not found"})
 		return
 	}
@@ -46,7 +35,7 @@ func (d *delete) Delete(c *gin.Context, username string) {
 		Valid: true,
 	}
 
-	if err := d.Save(&report).Error; err != nil {
+	if err := db.Save(&report).Error; err != nil {
 		c.JSON(500, gin.H{"msg": err.Error()})
 		return
 	}

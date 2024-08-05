@@ -7,22 +7,11 @@ import (
 	"time"
 )
 
-type uDelete struct {
-	*gorm.DB
-}
-
 type DeleteUser struct {
 	Username string `json:"username" uri:"username" binding:"required"`
 }
 
-func NewDelete(db *gorm.DB) *uDelete {
-	value := uDelete{
-		db,
-	}
-	return &value
-}
-
-func (d *uDelete) Delete(c *gin.Context, username string) {
+func (db *Struct) Delete(c *gin.Context, username string) {
 	var deleteUser DeleteUser
 	if err := c.ShouldBindUri(&deleteUser); err != nil {
 		c.JSON(400, gin.H{"msg": err.Error()})
@@ -40,7 +29,7 @@ func (d *uDelete) Delete(c *gin.Context, username string) {
 	}
 
 	var user *models.User
-	if err := d.Find(&user, "username = ?", deleteUser.Username); err.Error != nil {
+	if err := db.Find(&user, "username = ?", deleteUser.Username); err.Error != nil {
 		c.JSON(400, gin.H{"msg": "user not found"})
 		return
 	}
@@ -48,7 +37,7 @@ func (d *uDelete) Delete(c *gin.Context, username string) {
 		Time:  time.Now(),
 		Valid: true,
 	}
-	if err := d.Save(&user); err.Error != nil {
+	if err := db.Save(&user); err.Error != nil {
 		c.JSON(500, gin.H{"msg": err.Error})
 		return
 	}

@@ -24,7 +24,7 @@ func Update(db *gorm.DB) *update {
 	return &value
 }
 
-func (u *update) UpdateUser(c *gin.Context, username string) {
+func (db *Struct) UpdateUser(c *gin.Context, username string) {
 	if username == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid credentials",
@@ -37,7 +37,7 @@ func (u *update) UpdateUser(c *gin.Context, username string) {
 			"error": "Invalid input",
 		})
 	}
-	if err := u.DB.Model(&models.User{}).Where("username = ?", username).
+	if err := db.DB.Model(&models.User{}).Where("username = ?", username).
 		Updates(models.User{
 			Email: req.Email,
 			Name:  req.Name,

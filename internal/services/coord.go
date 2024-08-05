@@ -13,6 +13,7 @@ import (
 type Coordinates struct {
 	Latitude  string `json:"latitude"`
 	Longitude string `json:"longitude"`
+	Street    string `json:"street"`
 }
 
 func GetCoord(street string, district string) (*Coordinates, error) {
@@ -33,8 +34,9 @@ func GetCoord(street string, district string) (*Coordinates, error) {
 	}(response.Body)
 
 	type results []struct {
-		Lat string `json:"lat"`
-		Lon string `json:"lon"`
+		Lat        string `json:"lat"`
+		Lon        string `json:"lon"`
+		StreetName string `json:"name"`
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -52,6 +54,7 @@ func GetCoord(street string, district string) (*Coordinates, error) {
 		return &Coordinates{
 			Latitude:  result[0].Lat,
 			Longitude: result[0].Lon,
+			Street:    result[0].StreetName,
 		}, nil
 	}
 

@@ -4,30 +4,18 @@ import (
 	"fiscaliza/internal/models"
 	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
 )
 
 type RequestReport struct {
-	Anonymous int    `json:"anonymous"`
-	Report    string `json:"report"`
-	Type      string `json:"type,omitempty"`
-	Street    string `json:"street"`
-	District  string `json:"district"`
+	Anonymous   int    `json:"anonymous"`
+	Type        string `json:"type,omitempty"`
+	Description string `json:"description"`
+	Street      string `json:"street"`
+	District    string `json:"district"`
 }
 
-type NewReport struct {
-	*gorm.DB
-}
-
-func NewCreate(db *gorm.DB) *NewReport {
-	value := NewReport{
-		db,
-	}
-	return &value
-}
-
-func (r *NewReport) Create(c *gin.Context, username string) {
+func (db *StructRep) Create(c *gin.Context, username string) {
 	var req RequestReport
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,17 +39,17 @@ func (r *NewReport) Create(c *gin.Context, username string) {
 	}
 
 	report := models.Report{
-		Username:  username,
-		Anonymous: req.Anonymous,
-		Report:    req.Report,
-		Type:      req.Type,
-		Street:    req.Street,
-		District:  req.District,
-		Lat:       coords.Latitude,
-		Lon:       coords.Longitude,
+		Username:    username,
+		Anonymous:   req.Anonymous,
+		Description: req.Description,
+		Type:        req.Type,
+		Street:      coords.Street,
+		District:    req.District,
+		Lat:         coords.Latitude,
+		Lon:         coords.Longitude,
 	}
 
-	if err := r.DB.Create(&report).Error; err != nil {
+	if err := db.DB.Create(&report).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

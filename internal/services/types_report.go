@@ -29,7 +29,6 @@ var AllReportTypes = ReportTypes{
 	ReportType{TypeId: "DRUNKENNESS", Name: "Embriaguez", Category: "CRIME"},
 	ReportType{TypeId: "DRUG_USE", Name: "Uso de Drogas", Category: "CRIME"},
 	ReportType{TypeId: "PROSTITUTION", Name: "Prostituição", Category: "CRIME"},
-	ReportType{TypeId: "OTHER_CRIME", Name: "Outro Crime", Category: "CRIME"},
 	ReportType{TypeId: "ACCIDENT_SERIOUS", Name: "Acidente Grave", Category: "ACCIDENT"},
 	ReportType{TypeId: "ACCIDENT_LIGHT", Name: "Acidente Leve", Category: "ACCIDENT"},
 	ReportType{TypeId: "ACCIDENT_WITH_INJURIES", Name: "Acidente com Feridos", Category: "ACCIDENT"},
@@ -45,11 +44,9 @@ var AllReportTypes = ReportTypes{
 	ReportType{TypeId: "FOG", Name: "Neblina", Category: "NATURE"},
 	ReportType{TypeId: "FREEZE_RAIN", Name: "Chuva de Granizo", Category: "NATURE"},
 	ReportType{TypeId: "SEVERAL_RAIN", Name: "Chuva Forte", Category: "NATURE"},
-	ReportType{TypeId: "OTHER_NATURE", Name: "Outra Natureza", Category: "NATURE"},
 	ReportType{TypeId: "FIRE", Name: "Incêndio", Category: "FIRE"},
 	ReportType{TypeId: "EXPLOSION", Name: "Explosão", Category: "FIRE"},
 	ReportType{TypeId: "GAS_LEAK", Name: "Vazamento de Gás", Category: "FIRE"},
-	ReportType{TypeId: "OTHER_FIRE", Name: "Outro Fogo", Category: "FIRE"},
 	ReportType{TypeId: "ELECTRIC_PROBLEM", Name: "Problema Elétrico", Category: "INFRASTRUCTURE"},
 	ReportType{TypeId: "WATER_PROBLEM", Name: "Problema de Água", Category: "INFRASTRUCTURE"},
 	ReportType{TypeId: "ROAD_PROBLEM", Name: "Problema de Estrada", Category: "INFRASTRUCTURE"},
@@ -60,7 +57,6 @@ var AllReportTypes = ReportTypes{
 	ReportType{TypeId: "BAD_TRAFFIC_LIGHT", Name: "Semáforo Ruim", Category: "INFRASTRUCTURE"},
 	ReportType{TypeId: "BAD_ROAD_SIGNAL", Name: "Sinalização Ruim", Category: "INFRASTRUCTURE"},
 	ReportType{TypeId: "ANIMALS_ON_THE_ROAD", Name: "Animais na Estrada", Category: "INFRASTRUCTURE"},
-	ReportType{TypeId: "OTHER_INFRASTRUCTURE", Name: "Outra Infraestrutura", Category: "INFRASTRUCTURE"},
 	ReportType{TypeId: "GENERIC", Name: "Não Listado", Category: "GENERIC"},
 }
 

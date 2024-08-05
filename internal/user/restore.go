@@ -17,7 +17,7 @@ func NewRestore(db *gorm.DB) *restore {
 	return &value
 }
 
-func (r *restore) Restore(c *gin.Context) {
+func (db *Struct) Restore(c *gin.Context) {
 	userNameParam := c.Param("user")
 	if userNameParam == "" {
 		c.JSON(400, gin.H{"error": "Invalid input"})
@@ -25,7 +25,7 @@ func (r *restore) Restore(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := r.DB.Unscoped().Where("username = ?", userNameParam).First(&user).Error; err != nil {
+	if err := db.DB.Unscoped().Where("username = ?", userNameParam).First(&user).Error; err != nil {
 		c.JSON(400, gin.H{"error": "User not found"})
 		return
 	}
@@ -36,7 +36,7 @@ func (r *restore) Restore(c *gin.Context) {
 	}
 
 	user.DeletedAt = nil
-	if err := r.DB.Save(&user).Error; err != nil {
+	if err := db.DB.Save(&user).Error; err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

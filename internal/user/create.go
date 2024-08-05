@@ -5,7 +5,6 @@ import (
 	"fiscaliza/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -59,18 +58,7 @@ func (u *CreateReq) validate() (bool, error) {
 	return true, nil
 }
 
-type create struct {
-	*gorm.DB
-}
-
-func NewCreate(db *gorm.DB) *create {
-	value := create{
-		db,
-	}
-	return &value
-}
-
-func (cr *create) Create(c *gin.Context) {
+func (db *Struct) Create(c *gin.Context) {
 	var data CreateReq
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(400, gin.H{
@@ -84,7 +72,7 @@ func (cr *create) Create(c *gin.Context) {
 		return
 	}
 
-	if err := cr.DB.Where("username = ?", data.Username).Or("email = ?", data.Email).
+	if err := db.DB.Where("username = ?", data.Username).Or("email = ?", data.Email).
 		First(&models.User{}).Error; err == nil {
 		c.JSON(400, gin.H{
 			"error": "Username already exists",
@@ -100,7 +88,7 @@ func (cr *create) Create(c *gin.Context) {
 		Name:     data.Name,
 	}
 
-	if err := cr.DB.Create(&insert).Error; err != nil {
+	if err := db.DB.Create(&insert).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})

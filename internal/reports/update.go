@@ -3,30 +3,18 @@ package reports
 import (
 	"fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type RequestUpdate struct {
-	Anonymous int    `json:"anonymous"`
-	Report    string `json:"report"`
-	Street    string `json:"street"`
-	District  string `json:"district"`
-	City      string `json:"city"`
-	State     string `json:"state"`
+	Anonymous   int    `json:"anonymous"`
+	Description string `json:"description"`
+	Street      string `json:"street"`
+	District    string `json:"district"`
+	City        string `json:"city"`
+	State       string `json:"state"`
 }
 
-type update struct {
-	*gorm.DB
-}
-
-func NewUpdate(db *gorm.DB) *update {
-	value := update{
-		db,
-	}
-	return &value
-}
-
-func (r *update) Update(c *gin.Context, username string, id string) {
+func (db *StructRep) Update(c *gin.Context, username string, id string) {
 	if username == "" {
 		c.JSON(401, gin.H{
 			"error": "Unauthorized",
@@ -41,7 +29,7 @@ func (r *update) Update(c *gin.Context, username string, id string) {
 		return
 	}
 	var report models.Report
-	if err := r.DB.Find(&report, id).Error; err != nil {
+	if err := db.DB.Find(&report, id).Error; err != nil {
 		c.JSON(404, gin.H{
 			"error": "Report not found",
 		})
