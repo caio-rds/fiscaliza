@@ -12,15 +12,15 @@ type Report struct {
 	Type        string `gorm:"not null, default:'GENERIC'"`
 	Description string `gorm:"not null"`
 	Street      string `gorm:"not null"`
+	Number      string `gorm:"default:'S/N'"`
 	District    string `gorm:"not null"`
 	City        string `gorm:"default:Rio de Janeiro"`
 	State       string `gorm:"default:RJ"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `gorm:"index"`
-	Solved      int
-	Lat         string `gorm:"not null"`
-	Lon         string `gorm:"not null"`
+	Lat         string         `gorm:"not null"`
+	Lon         string         `gorm:"not null"`
 }
 
 func (u *Report) TableName() string {

@@ -12,7 +12,10 @@ type RequestReport struct {
 	Type        string `json:"type,omitempty"`
 	Description string `json:"description"`
 	Street      string `json:"street"`
+	Number      string `json:"number"`
 	District    string `json:"district"`
+	Lat         string `json:"lat"`
+	Lon         string `json:"lon"`
 }
 
 func (db *StructRep) Create(c *gin.Context, username string) {
@@ -22,14 +25,8 @@ func (db *StructRep) Create(c *gin.Context, username string) {
 		return
 	}
 
-	coords, err := services.GetCoord(req.Street, req.District)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
 	if req.Type != "" {
-		_, err = services.GetReportType(req.Type)
+		_, err := services.GetReportType(req.Type)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -43,10 +40,11 @@ func (db *StructRep) Create(c *gin.Context, username string) {
 		Anonymous:   req.Anonymous,
 		Description: req.Description,
 		Type:        req.Type,
-		Street:      coords.Street,
+		Street:      req.Street,
+		Number:      req.Number,
 		District:    req.District,
-		Lat:         coords.Latitude,
-		Lon:         coords.Longitude,
+		Lat:         req.Lat,
+		Lon:         req.Lon,
 	}
 
 	if err := db.DB.Create(&report).Error; err != nil {

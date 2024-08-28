@@ -58,7 +58,6 @@ func (db *StructRep) Read(c *gin.Context) {
 		City:        report.City,
 		State:       report.State,
 		CreatedAt:   report.CreatedAt,
-		Solved:      report.Solved,
 		Lat:         report.Lat,
 		Lon:         report.Lon,
 	})
@@ -124,7 +123,6 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 				City:        report.City,
 				State:       report.State,
 				CreatedAt:   report.CreatedAt,
-				Solved:      report.Solved,
 				Lat:         report.Lat,
 				Lon:         report.Lon,
 			})
@@ -141,7 +139,6 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 			City:        report.City,
 			State:       report.State,
 			CreatedAt:   report.CreatedAt,
-			Solved:      report.Solved,
 			Lat:         report.Lat,
 			Lon:         report.Lon,
 		})
@@ -203,7 +200,6 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 					City:        report.City,
 					State:       report.State,
 					CreatedAt:   report.CreatedAt,
-					Solved:      report.Solved,
 					Lat:         report.Lat,
 					Lon:         report.Lon,
 				})
@@ -220,7 +216,6 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 				City:        report.City,
 				State:       report.State,
 				CreatedAt:   report.CreatedAt,
-				Solved:      report.Solved,
 				Lat:         report.Lat,
 				Lon:         report.Lon,
 			})
