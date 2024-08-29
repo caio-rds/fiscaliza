@@ -1,0 +1,29 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rc123
+      MYSQL_DATABASE: fiscaliza_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/var/lib/mysql
+
+  app:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    container_name: fiscaliza_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=root:rc123@tcp(db:3306)/fiscaliza_db?charset=utf8mb4&parseTime=True&loc=Local
+
+    command: ["./main"]
+
+volumes:
+    db:
