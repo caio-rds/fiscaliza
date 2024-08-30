@@ -24,7 +24,6 @@ type Address struct {
 	ID         uint   `gorm:"primaryKey"`
 	Username   string `gorm:"unique,not null"`
 	Street     string
-	Number     string
 	Compliment *string
 	District   string
 	City       string
