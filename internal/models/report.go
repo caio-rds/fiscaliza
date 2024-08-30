@@ -12,7 +12,6 @@ type Report struct {
 	Type        string `gorm:"not null, default:'GENERIC'"`
 	Description string `gorm:"not null"`
 	Street      string `gorm:"not null"`
-	Number      string `gorm:"default:'S/N'"`
 	District    string `gorm:"not null"`
 	City        string `gorm:"default:Rio de Janeiro"`
 	State       string `gorm:"default:RJ"`
