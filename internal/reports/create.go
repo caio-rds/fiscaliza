@@ -12,7 +12,6 @@ type RequestReport struct {
 	Type        string `json:"type,omitempty"`
 	Description string `json:"description"`
 	Street      string `json:"street"`
-	Number      string `json:"number"`
 	District    string `json:"district"`
 	Lat         string `json:"lat"`
 	Lon         string `json:"lon"`
@@ -41,7 +40,6 @@ func (db *StructRep) Create(c *gin.Context, username string) {
 		Description: req.Description,
 		Type:        req.Type,
 		Street:      req.Street,
-		Number:      req.Number,
 		District:    req.District,
 		Lat:         req.Lat,
 		Lon:         req.Lon,

@@ -3,7 +3,6 @@ package user
 import (
 	"fiscaliza/internal/models"
 	"fiscaliza/internal/services"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -11,7 +10,6 @@ import (
 
 type AddressRequest struct {
 	Street     string  `json:"street"`
-	Number     string  `json:"number"`
 	Compliment *string `json:"compliment"`
 	District   string  `json:"district"`
 }
@@ -29,7 +27,7 @@ func (db *Struct) UpsertAddress(c *gin.Context, username string) {
 		return
 	}
 
-	coords, err := services.GetCoord(fmt.Sprintf("%s, %s", address.Street, address.Number), address.District)
+	coords, err := services.GetCoord(address.Street, address.District)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -41,7 +39,6 @@ func (db *Struct) UpsertAddress(c *gin.Context, username string) {
 		model = models.Address{
 			Username:   username,
 			Street:     address.Street,
-			Number:     address.Number,
 			Compliment: address.Compliment,
 			District:   strings.ToUpper(string(address.District[0])) + strings.ToLower(address.District[1:]),
 			City:       "Rio de Janeiro",
@@ -57,7 +54,6 @@ func (db *Struct) UpsertAddress(c *gin.Context, username string) {
 	if err := db.DB.Model(&models.Address{}).Where("username = ?", username).
 		Updates(models.Address{
 			Street:     address.Street,
-			Number:     address.Number,
 			Compliment: address.Compliment,
 			District:   strings.ToUpper(string(address.District[0])) + strings.ToLower(address.District[1:]),
 			City:       "Rio de Janeiro",

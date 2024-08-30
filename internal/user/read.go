@@ -19,7 +19,6 @@ type ResponseNoReports struct {
 
 type AddressResponse struct {
 	Street     string  `json:"street"`
-	Number     string  `json:"number"`
 	Compliment *string `json:"compliment"`
 	District   string  `json:"district"`
 	City       string  `json:"city"`
@@ -51,7 +50,6 @@ func (db *Struct) Read(c *gin.Context) {
 	if userAddress.Username != "" {
 		addressResponse = &AddressResponse{
 			Street:     userAddress.Street,
-			Number:     userAddress.Number,
 			Compliment: userAddress.Compliment,
 			District:   userAddress.District,
 			City:       userAddress.City,
