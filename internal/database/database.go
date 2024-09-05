@@ -1,9 +1,9 @@
-package services
+package database
 
 import (
 	"fiscaliza/internal/models"
 	"fmt"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"os"
@@ -12,8 +12,7 @@ import (
 func ConnectDB() *gorm.DB {
 	dsn := os.Getenv("DATABASE_URL")
 	fmt.Println(dsn)
-	// dsn := "root:rc123@tcp(127.0.0.1:3306)/fiscaliza?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
@@ -26,14 +25,3 @@ func ConnectDB() *gorm.DB {
 
 	return db
 }
-
-//type dbInterface struct {
-//	*gorm.DB
-//}
-//
-//func DB(db *gorm.DB) *dbInterface {
-//	value := dbInterface{
-//		db,
-//	}
-//	return &value
-//}

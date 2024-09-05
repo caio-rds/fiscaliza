@@ -15,18 +15,18 @@ func getToken(username string) (string, error) {
 	return token, nil
 }
 
-type login struct {
+type Login struct {
 	*gorm.DB
 }
 
-func NewLogin(db *gorm.DB) *login {
-	value := login{
+func NewLogin(db *gorm.DB) *Login {
+	value := Login{
 		db,
 	}
 	return &value
 }
 
-func (l *login) TryLogin(c *gin.Context) {
+func (l *Login) TryLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	if username == "" || password == "" {

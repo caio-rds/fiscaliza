@@ -15,6 +15,7 @@ type Claims struct {
 }
 
 func GenerateJwt(username string) (string, error) {
+
 	expirationTime := jwt.TimeFunc().Add(2 * time.Hour)
 	claims := &Claims{
 		Username: username,

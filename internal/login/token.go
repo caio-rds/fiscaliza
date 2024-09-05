@@ -33,7 +33,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Passando as informações do usuário para o contexto
 		c.Set("username", claims.Username)
 		c.Next()
 	}

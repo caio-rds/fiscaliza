@@ -2,12 +2,12 @@ package main
 
 import (
 	"fiscaliza/internal/api"
-	"fiscaliza/internal/services"
+	"fiscaliza/internal/database"
 )
 
 func main() {
 
-	var db = services.ConnectDB()
+	var db = database.ConnectDB()
 
 	router := api.NewRouter()
 	router.RouteOne(db)

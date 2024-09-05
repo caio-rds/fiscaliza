@@ -88,7 +88,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 			}
 			rep.Create(c, username)
 		})
-		report.GET("/", login.AuthMiddleware(), func(c *gin.Context) {
+		report.GET("/all", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			if username == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -96,15 +96,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 			}
 			rep.ReadAll(c)
 		})
-		report.GET("/types", login.AuthMiddleware(), func(c *gin.Context) {
-			username := c.GetString("username")
-			if username == "" {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-				return
-			}
-			c.JSON(http.StatusOK, services.GetReportTypes())
-		})
-		report.GET("/nearest", login.AuthMiddleware(), func(c *gin.Context) {
+		report.GET("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			if username == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -145,6 +137,14 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				return
 			}
 			rep.Delete(c, username)
+		})
+		report.GET("/types", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			c.JSON(http.StatusOK, services.GetReportTypes())
 		})
 	}
 

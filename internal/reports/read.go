@@ -3,6 +3,7 @@ package reports
 import (
 	"fiscaliza/internal/models"
 	"fiscaliza/internal/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"
@@ -17,6 +18,7 @@ type ReportResponse struct {
 	Username    string    `json:"username"`
 	Anonymous   int       `json:"anonymous"`
 	Type        *string   `json:"type"`
+	Distance    *string   `json:"distance"`
 	Description string    `json:"description"`
 	Street      string    `json:"street"`
 	District    string    `json:"district"`
@@ -45,6 +47,10 @@ func (db *StructRep) Read(c *gin.Context) {
 	if err := db.First(&report, search.ID).Error; err != nil {
 		c.JSON(404, gin.H{"error": "record not found"})
 		return
+	}
+
+	if report.Anonymous == 1 {
+		report.Username = "not available"
 	}
 
 	c.JSON(200, &ReportResponse{
@@ -111,24 +117,7 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 
 	var response []ReportResponse
 	for _, report := range *reports {
-		if report.Anonymous == 1 {
-			response = append(response, ReportResponse{
-				Id:          report.ID,
-				Username:    "not available",
-				Anonymous:   report.Anonymous,
-				Description: report.Description,
-				Type:        services.GetReportTypeName(report.Type),
-				Street:      report.Street,
-				District:    report.District,
-				City:        report.City,
-				State:       report.State,
-				CreatedAt:   report.CreatedAt,
-				Lat:         report.Lat,
-				Lon:         report.Lon,
-			})
-			continue
-		}
-		response = append(response, ReportResponse{
+		newResponse := ReportResponse{
 			Id:          report.ID,
 			Username:    report.Username,
 			Anonymous:   report.Anonymous,
@@ -141,7 +130,12 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 			CreatedAt:   report.CreatedAt,
 			Lat:         report.Lat,
 			Lon:         report.Lon,
-		})
+		}
+		if newResponse.Anonymous == 1 {
+			newResponse.Username = "not available"
+		}
+
+		response = append(response, newResponse)
 	}
 	if !filters.Reverse {
 		for i, j := 0, len(response)-1; i < j; i, j = i+1, j-1 {
@@ -153,9 +147,10 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 }
 
 type NearestReports struct {
-	Lat   string  `json:"lat"`
-	Lon   string  `json:"lon"`
-	Range float64 `json:"range" default:"1.0"`
+	Lat         string  `json:"lat"`
+	Lon         string  `json:"lon"`
+	Range       float64 `json:"range" default:"0"`
+	HomeAddress bool    `json:"home_address" default:"false"`
 }
 
 func (db *StructRep) ReadNearest(c *gin.Context) {
@@ -187,39 +182,35 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 			c.JSON(404, gin.H{"error": "no coordinates found"})
 			return
 		}
-		if distance.Distance <= currentCoords.Range {
-			if report.Anonymous == 1 {
-				response = append(response, ReportResponse{
-					Id:          report.ID,
-					Username:    "not available",
-					Anonymous:   report.Anonymous,
-					Description: report.Description,
-					Type:        services.GetReportTypeName(report.Type),
-					Street:      report.Street,
-					District:    report.District,
-					City:        report.City,
-					State:       report.State,
-					CreatedAt:   report.CreatedAt,
-					Lat:         report.Lat,
-					Lon:         report.Lon,
-				})
-				continue
-			}
-			response = append(response, ReportResponse{
-				Id:          report.ID,
-				Username:    report.Username,
-				Anonymous:   report.Anonymous,
-				Description: report.Description,
-				Type:        services.GetReportTypeName(report.Type),
-				Street:      report.Street,
-				District:    report.District,
-				City:        report.City,
-				State:       report.State,
-				CreatedAt:   report.CreatedAt,
-				Lat:         report.Lat,
-				Lon:         report.Lon,
-			})
+		var reportDistance = fmt.Sprintf("%.3f", distance.Distance)
+
+		newResponse := ReportResponse{
+			Id:          report.ID,
+			Username:    report.Username,
+			Anonymous:   report.Anonymous,
+			Description: report.Description,
+			Type:        services.GetReportTypeName(report.Type),
+			Distance:    &reportDistance,
+			Street:      report.Street,
+			District:    report.District,
+			City:        report.City,
+			State:       report.State,
+			CreatedAt:   report.CreatedAt,
+			Lat:         report.Lat,
+			Lon:         report.Lon,
 		}
+		if newResponse.Anonymous == 1 {
+			newResponse.Username = "not available"
+		}
+
+		if url["range"] != nil {
+			if distance.Distance <= currentCoords.Range {
+				response = append(response, newResponse)
+			}
+		} else {
+			response = append(response, newResponse)
+		}
+
 	}
 
 	if len(response) == 0 {
