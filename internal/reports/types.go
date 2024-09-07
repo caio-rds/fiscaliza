@@ -85,15 +85,15 @@ func GetReportTypeName(typeId string) *string {
 	return &reportType.Name
 }
 
-func GetReportTypesByCategory(category string) (*ReportTypes, error) {
-	var reportTypes ReportTypes
-	for _, reportType := range AllReportTypes {
-		if reportType.Category == category {
-			reportTypes = append(reportTypes, reportType)
-		}
-	}
-	return &reportTypes, nil
-}
+//func GetTypesByCategory(category string) (*ReportTypes, error) {
+//	var reportTypes ReportTypes
+//	for _, reportType := range AllReportTypes {
+//		if reportType.Category == category {
+//			reportTypes = append(reportTypes, reportType)
+//		}
+//	}
+//	return &reportTypes, nil
+//}
 
 func GetReportTypes() ReportTypes {
 	return AllReportTypes
