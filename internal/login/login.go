@@ -1,32 +1,21 @@
 package login
 
 import (
+	"fiscaliza/internal/auth"
+	"fiscaliza/internal/crypt"
 	"fiscaliza/internal/models"
-	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func getToken(username string) (string, error) {
-	token, err := services.GenerateJwt(username)
+	token, err := auth.GenerateJwt(username)
 	if err != nil {
 		return "", err
 	}
 	return token, nil
 }
 
-type Login struct {
-	*gorm.DB
-}
-
-func NewLogin(db *gorm.DB) *Login {
-	value := Login{
-		db,
-	}
-	return &value
-}
-
-func (l *Login) TryLogin(c *gin.Context) {
+func (db *Struct) TryLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	if username == "" || password == "" {
@@ -35,8 +24,8 @@ func (l *Login) TryLogin(c *gin.Context) {
 	}
 
 	var u models.User
-	l.Find(&u, "username = ?", username)
-	if services.ComparePassword(u.Password, password) {
+	db.Find(&u, "username = ?", username)
+	if crypt.ComparePassword(u.Password, password) {
 		if token, err := getToken(username); err != nil {
 			c.JSON(500, gin.H{"msg": "Internal server error"})
 			return

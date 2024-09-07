@@ -2,16 +2,16 @@ package user
 
 import (
 	"fiscaliza/internal/models"
-	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 type AddressRequest struct {
 	Street     string  `json:"street"`
 	Compliment *string `json:"compliment"`
 	District   string  `json:"district"`
+	Lat        string  `json:"lat"`
+	Lon        string  `json:"lon"`
 }
 
 func (db *Struct) UpsertAddress(c *gin.Context, username string) {
@@ -27,40 +27,25 @@ func (db *Struct) UpsertAddress(c *gin.Context, username string) {
 		return
 	}
 
-	coords, err := services.GetCoord(address.Street, address.District)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
+	model := models.Address{
+		Username:   username,
+		Street:     address.Street,
+		Compliment: address.Compliment,
+		District:   address.District,
+		City:       "Rio de Janeiro",
+		State:      "RJ",
+		Lat:        address.Lat,
+		Lon:        address.Lon,
 	}
-
-	var model models.Address
 	db.Find(&model, "username = ?", username)
 	if model.Username == "" {
-		model = models.Address{
-			Username:   username,
-			Street:     address.Street,
-			Compliment: address.Compliment,
-			District:   strings.ToUpper(string(address.District[0])) + strings.ToLower(address.District[1:]),
-			City:       "Rio de Janeiro",
-			State:      "RJ",
-			Lat:        coords.Latitude,
-			Lon:        coords.Longitude,
-		}
 		db.DB.Create(&model)
 		c.JSON(200, gin.H{"message": "Address created"})
 		return
 	}
 
 	if err := db.DB.Model(&models.Address{}).Where("username = ?", username).
-		Updates(models.Address{
-			Street:     address.Street,
-			Compliment: address.Compliment,
-			District:   strings.ToUpper(string(address.District[0])) + strings.ToLower(address.District[1:]),
-			City:       "Rio de Janeiro",
-			State:      "RJ",
-			Lat:        coords.Latitude,
-			Lon:        coords.Longitude,
-		}).Error; err != nil {
+		Updates(&model).Error; err != nil {
 		c.JSON(400, gin.H{"error": "Address not found"})
 		return
 	}

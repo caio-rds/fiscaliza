@@ -1,8 +1,9 @@
 package user
 
 import (
+	"fiscaliza/internal/auth"
+	"fiscaliza/internal/crypt"
 	"fiscaliza/internal/models"
-	"fiscaliza/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/mail"
@@ -72,18 +73,28 @@ func (db *Struct) Create(c *gin.Context) {
 		return
 	}
 
+	var user *models.User
 	if err := db.DB.Where("username = ?", data.Username).Or("email = ?", data.Email).
-		First(&models.User{}).Error; err == nil {
-		c.JSON(400, gin.H{
-			"error": "Username already exists",
-		})
+		First(&user).Error; err == nil {
+		if user.Username == data.Username {
+			c.JSON(400, gin.H{
+				"error": "Username already exists",
+			})
+			return
+		}
+		if user.Email == data.Email {
+			c.JSON(400, gin.H{
+				"error": "Email already exists",
+			})
+			return
+		}
 		return
 	}
 
 	insert := models.User{
 		Username: data.Username,
 		Email:    data.Email,
-		Password: services.Password(data.Password),
+		Password: crypt.Password(data.Password),
 		Phone:    data.Phone,
 		Name:     data.Name,
 	}
@@ -95,11 +106,15 @@ func (db *Struct) Create(c *gin.Context) {
 		return
 	}
 
+	token, err := auth.GenerateJwt(insert.Username)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, gin.H{
-		"id":       insert.ID,
-		"username": data.Username,
-		"email":    data.Email,
-		"phone":    data.Phone,
-		"name":     data.Name,
+		"token": token,
 	})
 }

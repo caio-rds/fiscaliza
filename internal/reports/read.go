@@ -2,9 +2,9 @@ package reports
 
 import (
 	"fiscaliza/internal/models"
-	"fiscaliza/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"math"
 	"strconv"
 	"time"
 )
@@ -58,7 +58,7 @@ func (db *StructRep) Read(c *gin.Context) {
 		Username:    report.Username,
 		Anonymous:   report.Anonymous,
 		Description: report.Description,
-		Type:        services.GetReportTypeName(report.Type),
+		Type:        GetReportTypeName(report.Type),
 		Street:      report.Street,
 		District:    report.District,
 		City:        report.City,
@@ -122,7 +122,7 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 			Username:    report.Username,
 			Anonymous:   report.Anonymous,
 			Description: report.Description,
-			Type:        services.GetReportTypeName(report.Type),
+			Type:        GetReportTypeName(report.Type),
 			Street:      report.Street,
 			District:    report.District,
 			City:        report.City,
@@ -177,7 +177,7 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 
 	var response []ReportResponse
 	for _, report := range *reports {
-		distance, err := services.GetDistance(currentCoords.Lat, currentCoords.Lon, report.Lat, report.Lon)
+		distance, err := getDistance(currentCoords.Lat, currentCoords.Lon, report.Lat, report.Lon)
 		if err != nil {
 			c.JSON(404, gin.H{"error": "no coordinates found"})
 			return
@@ -189,7 +189,7 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 			Username:    report.Username,
 			Anonymous:   report.Anonymous,
 			Description: report.Description,
-			Type:        services.GetReportTypeName(report.Type),
+			Type:        GetReportTypeName(report.Type),
 			Distance:    &reportDistance,
 			Street:      report.Street,
 			District:    report.District,
@@ -223,4 +223,58 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 	}
 	c.JSON(200, response)
 
+}
+
+type Distance struct {
+	Distance   float64 `json:"distance"`
+	Latitude1  string  `json:"latitude1"`
+	Longitude1 string  `json:"longitude1"`
+	Latitude2  string  `json:"latitude2"`
+	Longitude2 string  `json:"longitude2"`
+}
+
+func toRadians(degrees string) (float64, error) {
+	degreesFloat, err := strconv.ParseFloat(degrees, 64)
+	if err != nil {
+		return 0, err
+	}
+	return degreesFloat * (math.Pi / 180), nil
+}
+
+func getDistance(lat1 string, lon1 string, lat2 string, lon2 string) (*Distance, error) {
+	const EarthRadius = 6371
+
+	lat1Rad, err := toRadians(lat1)
+	if err != nil {
+		return nil, err
+	}
+	lon1Rad, err := toRadians(lon1)
+	if err != nil {
+		return nil, err
+	}
+	lat2Rad, err := toRadians(lat2)
+	if err != nil {
+		return nil, err
+	}
+	lon2Rad, err := toRadians(lon2)
+	if err != nil {
+		return nil, err
+	}
+
+	deltaLat := lat2Rad - lat1Rad
+	deltaLon := lon2Rad - lon1Rad
+
+	a := math.Sin(deltaLat/2)*math.Sin(deltaLat/2) +
+		math.Cos(lat1Rad)*math.Cos(lat2Rad)*math.Sin(deltaLon/2)*math.Sin(deltaLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	distance := EarthRadius * c
+
+	return &Distance{
+		Distance:   distance,
+		Latitude1:  lat1,
+		Longitude1: lon1,
+		Latitude2:  lat2,
+		Longitude2: lon2,
+	}, nil
 }

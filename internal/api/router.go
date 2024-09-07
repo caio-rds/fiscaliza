@@ -1,10 +1,9 @@
 package api
 
 import (
-	"fiscaliza/internal/login"
-	"fiscaliza/internal/reports"
-	"fiscaliza/internal/services"
-	"fiscaliza/internal/user"
+	loginPkg "fiscaliza/internal/login"
+	reportsPkg "fiscaliza/internal/reports"
+	userPkg "fiscaliza/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,15 +22,14 @@ func NewRouter() *Router {
 
 func (rt *Router) RouteOne(db *gorm.DB) {
 	r := gin.Default()
-	tryLogin := login.NewLogin(db)
-	rep := reports.NewDb(db)
-	rec := services.NewRecovery(db)
-	u := user.NewDb(db)
+	login := loginPkg.NewDb(db)
+	reports := reportsPkg.NewDb(db)
+	user := userPkg.NewDb(db)
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "ngrok-skip-browser-warning", "allow-control-allow-origin"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -39,24 +37,24 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 
 	userRouter := r.Group("/user")
 	{
-		userRouter.GET("/:username", u.Read)
-		userRouter.POST("/", u.Create)
+		userRouter.GET("/:username", user.Read)
+		userRouter.POST("/", user.Create)
 		userRouter.POST("/address", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			if username == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			u.UpsertAddress(c, username)
+			user.UpsertAddress(c, username)
 		})
-		userRouter.POST("/restore/:user", u.Restore)
+		userRouter.POST("/restore/:user", user.Restore)
 		userRouter.PUT("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			if username == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			u.UpdateUser(c, username)
+			user.UpdateUser(c, username)
 		})
 		userRouter.DELETE("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -64,13 +62,13 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			u.Delete(c, username)
+			user.Delete(c, username)
 		})
 	}
 
 	loginRouter := r.Group("/login")
 	{
-		loginRouter.POST("/", tryLogin.TryLogin)
+		loginRouter.POST("/", login.TryLogin)
 		loginRouter.GET("/token", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			c.JSON(http.StatusOK, gin.H{"message": username})
@@ -86,7 +84,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			rep.Create(c, username)
+			reports.Create(c, username)
 		})
 		report.GET("/all", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -94,7 +92,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			rep.ReadAll(c)
+			reports.ReadAll(c)
 		})
 		report.GET("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -102,7 +100,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			rep.ReadNearest(c)
+			reports.ReadNearest(c)
 		})
 		report.GET("/:id", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -110,7 +108,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			rep.Read(c)
+			reports.Read(c)
 		})
 		report.PUT("/:id", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -123,7 +121,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 				return
 			}
-			rep.Update(c, username, id)
+			reports.Update(c, username, id)
 		})
 		report.DELETE("/:id", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -136,7 +134,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 				return
 			}
-			rep.Delete(c, username)
+			reports.Delete(c, username)
 		})
 		report.GET("/types", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -144,15 +142,15 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			c.JSON(http.StatusOK, services.GetReportTypes())
+			c.JSON(http.StatusOK, reportsPkg.GetReportTypes())
 		})
 	}
 
 	recovery := r.Group("/recovery")
 	{
-		recovery.POST("/", rec.RequestCode)
-		recovery.POST("/code", rec.ByCode)
-		recovery.POST("/similarity", rec.BySimilarity)
+		recovery.POST("/", login.RequestCode)
+		recovery.POST("/code", login.ByCode)
+		recovery.POST("/similarity", login.BySimilarity)
 	}
 
 	if err := r.Run(":8000"); err != nil {

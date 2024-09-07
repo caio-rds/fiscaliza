@@ -2,13 +2,14 @@ package login
 
 import (
 	"errors"
-	"fiscaliza/internal/services"
+	"fiscaliza/internal/auth"
+	"fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 )
 
-func RefreshToken(c *gin.Context) {
+func (db *Struct) RefreshToken(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header not provided"})
@@ -16,13 +17,21 @@ func RefreshToken(c *gin.Context) {
 	}
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-	claims, err := services.ValidateToken(tokenString)
-	if err != nil && !errors.Is(err, services.ErrTokenExpired) {
+	claims, err := auth.ValidateToken(tokenString)
+
+	var user *models.User
+	db.Find(&user, "username = ?", claims.Username)
+	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
 
-	newToken, err := services.GenerateJwt(claims.Username)
+	if err != nil && !errors.Is(err, auth.ErrTokenExpired) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	newToken, err := auth.GenerateJwt(claims.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return

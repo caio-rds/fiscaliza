@@ -82,6 +82,7 @@ func (db *Struct) Read(c *gin.Context) {
 		c.JSON(404, gin.H{"msg": "User not found"})
 		return
 	}
+
 	c.JSON(200, ResponseNoReports{
 		Username: user.Username,
 		Email:    user.Email,

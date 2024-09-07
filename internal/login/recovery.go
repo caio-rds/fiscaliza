@@ -1,6 +1,7 @@
-package services
+package login
 
 import (
+	"fiscaliza/internal/crypt"
 	models "fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -32,18 +33,7 @@ type bySimilarityRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
-type recovery struct {
-	*gorm.DB
-}
-
-func NewRecovery(db *gorm.DB) *recovery {
-	value := recovery{
-		db,
-	}
-	return &value
-}
-
-func (r *recovery) RequestCode(c *gin.Context) {
+func (db *Struct) RequestCode(c *gin.Context) {
 	var req CodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,7 +41,7 @@ func (r *recovery) RequestCode(c *gin.Context) {
 	}
 
 	var userFind models.User
-	if err := r.Find(&userFind, "email = ? OR username = ?", req.Email, req.Username).Error; err != nil {
+	if err := db.Find(&userFind, "email = ? OR username = ?", req.Email, req.Username).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,7 +51,7 @@ func (r *recovery) RequestCode(c *gin.Context) {
 	}
 
 	var codeExists models.Recovery
-	if err := r.Find(&codeExists, "email = ? OR username = ?", req.Email, req.Username).Error; err != nil {
+	if err := db.Find(&codeExists, "email = ? OR username = ?", req.Email, req.Username).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -80,7 +70,7 @@ func (r *recovery) RequestCode(c *gin.Context) {
 		Code:     generateCode(),
 	}
 
-	if err := r.DB.Create(&insert).Error; err != nil {
+	if err := db.DB.Create(&insert).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -93,7 +83,7 @@ func (r *recovery) RequestCode(c *gin.Context) {
 
 }
 
-func (r *recovery) ByCode(c *gin.Context) {
+func (db *Struct) ByCode(c *gin.Context) {
 	var req *byCodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -101,7 +91,7 @@ func (r *recovery) ByCode(c *gin.Context) {
 	}
 
 	var codeExists *models.Recovery
-	if err := r.Find(&codeExists, "code = ?", req.Code).Error; err != nil {
+	if err := db.Find(&codeExists, "code = ?", req.Code).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -112,7 +102,7 @@ func (r *recovery) ByCode(c *gin.Context) {
 	}
 
 	var user *models.User
-	if err := r.Find(&user, "username = ?", codeExists.Username).Error; err != nil {
+	if err := db.Find(&user, "username = ?", codeExists.Username).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -124,9 +114,9 @@ func (r *recovery) ByCode(c *gin.Context) {
 		return
 	}
 
-	user.Password = Password(user.Password)
+	user.Password = crypt.Password(user.Password)
 
-	if err := r.Save(&user).Error; err != nil {
+	if err := db.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -136,7 +126,7 @@ func (r *recovery) ByCode(c *gin.Context) {
 		Valid: true,
 	}
 
-	if err := r.Save(&codeExists).Error; err != nil {
+	if err := db.Save(&codeExists).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -145,7 +135,7 @@ func (r *recovery) ByCode(c *gin.Context) {
 
 }
 
-func (r *recovery) BySimilarity(c *gin.Context) {
+func (db *Struct) BySimilarity(c *gin.Context) {
 	var req *bySimilarityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -153,7 +143,7 @@ func (r *recovery) BySimilarity(c *gin.Context) {
 	}
 
 	var user *models.User
-	if err := r.Find(&user, "username = ?", req.Username).Error; err != nil {
+	if err := db.Find(&user, "username = ?", req.Username).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -163,15 +153,15 @@ func (r *recovery) BySimilarity(c *gin.Context) {
 		return
 	}
 
-	equalPassword := ComparePassword(user.Password, req.Password)
+	equalPassword := crypt.ComparePassword(user.Password, req.Password)
 	if !equalPassword {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid password"})
 		return
 	}
 
-	user.Password = Password(req.NewPassword)
+	user.Password = crypt.Password(req.NewPassword)
 
-	if err := r.Save(&user).Error; err != nil {
+	if err := db.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

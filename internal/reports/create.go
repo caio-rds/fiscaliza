@@ -2,7 +2,6 @@ package reports
 
 import (
 	"fiscaliza/internal/models"
-	"fiscaliza/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -25,7 +24,7 @@ func (db *StructRep) Create(c *gin.Context, username string) {
 	}
 
 	if req.Type != "" {
-		_, err := services.GetReportType(req.Type)
+		_, err := GetReportType(req.Type)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

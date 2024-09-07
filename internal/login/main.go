@@ -1,4 +1,4 @@
-package services
+package login
 
 import "gorm.io/gorm"
 

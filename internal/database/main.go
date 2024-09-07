@@ -2,7 +2,6 @@ package database
 
 import (
 	"fiscaliza/internal/models"
-	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -11,7 +10,6 @@ import (
 
 func ConnectDB() *gorm.DB {
 	dsn := os.Getenv("DATABASE_URL")
-	fmt.Println(dsn)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
