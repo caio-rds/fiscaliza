@@ -7,7 +7,7 @@ EXPOSE 80
 EXPOSE 8080
 EXPOSE 8000
 
-ENV DATABASE_URL="postgresql://greentech:jmIBU2hg2Hp8jvzrVDjhFfGQepgCTNdb@dpg-crcu2tqj1k6c73ctl9qg-a.oregon-postgres.render.com/fiscaliza"
+ENV DATABASE_URL="postgresql://root:<SUA_SENHA>@<SUA_URL>:5432/fiscaliza?sslmode=disable
 
 COPY go.mod go.sum ./
 
