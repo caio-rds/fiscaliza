@@ -13,8 +13,8 @@ type Report struct {
 	Description string `gorm:"not null"`
 	Street      string `gorm:"not null"`
 	District    string `gorm:"not null"`
-	City        string `gorm:"default:Rio de Janeiro"`
-	State       string `gorm:"default:RJ"`
+	City        string `gorm:"not null"`
+	State       string `gorm:"not null"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `gorm:"index"`
