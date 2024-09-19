@@ -278,3 +278,39 @@ func getDistance(lat1 string, lon1 string, lat2 string, lon2 string) (*Distance,
 		Longitude2: lon2,
 	}, nil
 }
+
+func (db *StructRep) ReportsByUser(c *gin.Context, username string) {
+
+	var reports *[]models.Report
+	if err := db.Where("username = ?", username).Find(&reports).Error; err != nil {
+		c.JSON(404, gin.H{"error": "record not found"})
+		return
+	}
+
+	if len(*reports) == 0 {
+		c.JSON(404, gin.H{"error": "no reports found"})
+		return
+	}
+
+	var response []ReportResponse
+	for _, report := range *reports {
+		newResponse := ReportResponse{
+			Id:          report.ID,
+			Username:    report.Username,
+			Anonymous:   report.Anonymous,
+			Description: report.Description,
+			Type:        GetReportTypeName(report.Type),
+			Street:      report.Street,
+			District:    report.District,
+			City:        report.City,
+			State:       report.State,
+			CreatedAt:   report.CreatedAt,
+			Lat:         report.Lat,
+			Lon:         report.Lon,
+		}
+
+		response = append(response, newResponse)
+	}
+
+	c.JSON(200, response)
+}

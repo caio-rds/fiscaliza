@@ -20,24 +20,8 @@ type User struct {
 	DeletedAt *gorm.DeletedAt `gorm:"index"`
 }
 
-type Address struct {
-	ID         uint   `gorm:"primaryKey"`
-	Username   string `gorm:"unique,not null"`
-	Street     string
-	Compliment *string
-	District   string
-	City       string
-	State      string
-	Lat        string
-	Lon        string
-}
-
 func (u *User) TableName() string {
 	return "users"
-}
-
-func (a *Address) TableName() string {
-	return "user_addresses"
 }
 
 func (u *User) ValidatePassword() (bool, error) {

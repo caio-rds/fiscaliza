@@ -4,6 +4,7 @@ import (
 	loginPkg "fiscaliza/internal/login"
 	reportsPkg "fiscaliza/internal/reports"
 	userPkg "fiscaliza/internal/user"
+	userAdr "fiscaliza/internal/user_address"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,16 +21,20 @@ func NewRouter() *Router {
 	return &value
 }
 
-func (rt *Router) RouteOne(db *gorm.DB) {
+func (rt *Router) StartRouter(db *gorm.DB) {
 	r := gin.Default()
 	login := loginPkg.NewDb(db)
 	reports := reportsPkg.NewDb(db)
 	user := userPkg.NewDb(db)
+	address := userAdr.NewDb(db)
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "allow-control-allow-origin"},
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{
+			"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Origin",
+			"Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "allow-control-allow-origin",
+		},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -37,16 +42,23 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 
 	userRouter := r.Group("/user")
 	{
-		userRouter.GET("/:username", user.Read)
-		userRouter.POST("/", user.Create)
-		userRouter.POST("/address", login.AuthMiddleware(), func(c *gin.Context) {
+		userRouter.GET("/:username", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.Param("username")
+			if username == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+				return
+			}
+			user.Read(c, "")
+		})
+		userRouter.GET("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
 			if username == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			user.UpsertAddress(c, username)
+			user.Read(c, username)
 		})
+		userRouter.POST("/", user.Create)
 		userRouter.POST("/restore/:user", user.Restore)
 		userRouter.PUT("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -63,6 +75,38 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				return
 			}
 			user.Delete(c, username)
+		})
+		userRouter.GET("/address", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			address.Read(c, &username)
+		})
+		userRouter.POST("/address", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			address.Create(c, username)
+		})
+		userRouter.PUT("/address", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			address.Update(c, username)
+		})
+		userRouter.DELETE("/address/:id", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.GetString("username")
+			if username == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+				return
+			}
+			address.Delete(c, username)
 		})
 	}
 
@@ -93,6 +137,14 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 				return
 			}
 			reports.ReadAll(c)
+		})
+		report.GET("/all/own", login.AuthMiddleware(), func(c *gin.Context) {
+			username := c.Param("username")
+			if username == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+				return
+			}
+			reports.ReportsByUser(c, username)
 		})
 		report.GET("/", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")
@@ -144,6 +196,7 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 			}
 			c.JSON(http.StatusOK, reportsPkg.GetReportTypes())
 		})
+
 	}
 
 	recovery := r.Group("/recovery")
@@ -152,6 +205,10 @@ func (rt *Router) RouteOne(db *gorm.DB) {
 		recovery.POST("/code", login.ByCode)
 		recovery.POST("/similarity", login.BySimilarity)
 	}
+
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "Healthy"})
+	})
 
 	if err := r.Run(":8000"); err != nil {
 		log.Fatalf("panic: %v", err)

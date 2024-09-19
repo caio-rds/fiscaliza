@@ -10,5 +10,5 @@ func main() {
 	var db = database.ConnectDB()
 
 	router := api.NewRouter()
-	router.RouteOne(db)
+	router.StartRouter(db)
 }

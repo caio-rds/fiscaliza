@@ -3,19 +3,7 @@ package user
 import (
 	"fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
-
-type restore struct {
-	*gorm.DB
-}
-
-func NewRestore(db *gorm.DB) *restore {
-	value := restore{
-		db,
-	}
-	return &value
-}
 
 func (db *Struct) Restore(c *gin.Context) {
 	userNameParam := c.Param("user")
