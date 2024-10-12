@@ -60,7 +60,6 @@ func (db *Struct) Read(c *gin.Context, username string) {
 			District:   address.District,
 			City:       address.City,
 			State:      address.State,
-			PostalCode: address.PostalCode,
 			Default:    address.Default,
 			Name:       address.Name,
 			Lat:        address.Lat,

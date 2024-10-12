@@ -8,7 +8,6 @@ type Address struct {
 	District   string
 	City       string
 	State      string
-	PostalCode string
 	Name       string
 	Default    bool
 	Lat        string

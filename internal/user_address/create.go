@@ -66,7 +66,6 @@ func (db *Struct) Create(c *gin.Context, username string) {
 		City:       address.City,
 		State:      address.State,
 		Default:    address.Default,
-		PostalCode: address.PostalCode,
 		Name:       address.Name,
 		Lat:        address.Lat,
 		Lon:        address.Lon,

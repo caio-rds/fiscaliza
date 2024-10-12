@@ -55,9 +55,6 @@ func (db *Struct) Update(c *gin.Context, username string) {
 		}
 		existingAddress.Default = *address.Default
 	}
-	if address.PostalCode != nil {
-		existingAddress.PostalCode = *address.PostalCode
-	}
 	if address.Name != nil {
 		existingAddress.Name = *address.Name
 	}

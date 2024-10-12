@@ -45,7 +45,6 @@ func (db *Struct) Read(c *gin.Context, username *string) {
 			District:   adr.District,
 			City:       adr.City,
 			State:      adr.State,
-			PostalCode: adr.PostalCode,
 			Name:       adr.Name,
 			Default:    adr.Default,
 			Lat:        adr.Lat,

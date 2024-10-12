@@ -2,6 +2,7 @@ package api
 
 import (
 	loginPkg "fiscaliza/internal/login"
+	recoveryPkg "fiscaliza/internal/recovery"
 	reportsPkg "fiscaliza/internal/reports"
 	userPkg "fiscaliza/internal/user"
 	userAdr "fiscaliza/internal/user_address"
@@ -27,6 +28,7 @@ func (rt *Router) StartRouter(db *gorm.DB) {
 	reports := reportsPkg.NewDb(db)
 	user := userPkg.NewDb(db)
 	address := userAdr.NewDb(db)
+	rec := recoveryPkg.NewDb(db)
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -201,9 +203,10 @@ func (rt *Router) StartRouter(db *gorm.DB) {
 
 	recovery := r.Group("/recovery")
 	{
-		recovery.POST("/", login.RequestCode)
-		recovery.POST("/code", login.ByCode)
-		recovery.POST("/similarity", login.BySimilarity)
+		recovery.GET("/:username", rec.Read)
+		recovery.POST("/", rec.RequestCode)
+		recovery.PUT("/code", rec.ByCode)
+		recovery.PUT("/similarity", rec.BySimilarity)
 	}
 
 	r.GET("/health", func(c *gin.Context) {
