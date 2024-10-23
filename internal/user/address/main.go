@@ -1,4 +1,4 @@
-package user_address
+package address
 
 import "gorm.io/gorm"
 

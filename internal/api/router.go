@@ -5,7 +5,8 @@ import (
 	recoveryPkg "fiscaliza/internal/recovery"
 	reportsPkg "fiscaliza/internal/reports"
 	userPkg "fiscaliza/internal/user"
-	userAdr "fiscaliza/internal/user_address"
+	userAdr "fiscaliza/internal/user/address"
+	"fiscaliza/internal/websocket"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -198,7 +199,9 @@ func (rt *Router) StartRouter(db *gorm.DB) {
 			}
 			c.JSON(http.StatusOK, reportsPkg.GetReportTypes())
 		})
-
+		report.GET("/websocket", login.AuthMiddleware(), func(c *gin.Context) {
+			websocket.Connections(c)
+		})
 	}
 
 	recovery := r.Group("/recovery")

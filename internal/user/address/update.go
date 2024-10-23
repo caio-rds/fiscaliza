@@ -1,4 +1,4 @@
-package user_address
+package address
 
 import (
 	"fiscaliza/internal/models"

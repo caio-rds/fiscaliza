@@ -6,6 +6,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/twilio/twilio-go v1.23.3
 	golang.org/x/crypto v0.24.0

@@ -2,6 +2,7 @@ package reports
 
 import (
 	"fiscaliza/internal/models"
+	"fiscaliza/internal/websocket"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -49,6 +50,28 @@ func (db *StructRep) Create(c *gin.Context, username string) {
 	}
 
 	if err := db.DB.Create(&report).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var WSMessage = websocket.Message{
+		ID:          report.ID,
+		Username:    report.Username,
+		Anonymous:   report.Anonymous,
+		Type:        report.Type,
+		Description: report.Description,
+		Street:      report.Street,
+		District:    report.District,
+		City:        report.City,
+		State:       report.State,
+		Lat:         report.Lat,
+		Lon:         report.Lon,
+		CreatedAt:   report.CreatedAt,
+		UpdatedAt:   report.UpdatedAt,
+		DeletedAt:   report.DeletedAt.Time,
+	}
+
+	if err := websocket.SendMessage(&WSMessage); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
