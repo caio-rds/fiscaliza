@@ -155,7 +155,7 @@ func (rt *Router) StartRouter(db *gorm.DB) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 				return
 			}
-			reports.ReadNearest(c)
+			reports.ReadNearest(c, username)
 		})
 		report.GET("/:id", login.AuthMiddleware(), func(c *gin.Context) {
 			username := c.GetString("username")

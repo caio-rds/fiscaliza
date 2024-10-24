@@ -33,6 +33,9 @@ type ReportResponse struct {
 type Filters struct {
 	Street   string `json:"street"`
 	District string `json:"district"`
+	City     string `json:"city"`
+	State    string `json:"state"`
+	Type     string `json:"type"`
 	Reverse  bool   `json:"created" default:"false"`
 }
 
@@ -80,34 +83,38 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 		if url["district"] != nil {
 			filters.District = url["district"][0]
 		}
+		if url["city"] != nil {
+			filters.City = url["city"][0]
+		}
+		if url["state"] != nil {
+			filters.State = url["state"][0]
+		}
+		if url["type"] != nil {
+			filters.Type = url["type"][0]
+		}
 		if url["reverse"] != nil {
 			filters.Reverse = true
 		}
 	}
 
+	query := db.DB.Model(&models.Report{})
+	if filters.Street != "" {
+		query = query.Where("street LIKE ?", "%"+filters.Street+"%")
+	}
+	if filters.District != "" {
+		query = query.Where("district LIKE ?", "%"+filters.District+"%")
+	}
+	if filters.City != "" {
+		query = query.Where("city LIKE ?", "%"+filters.City+"%")
+	}
+	if filters.State != "" {
+		query = query.Where("state LIKE ?", "%"+filters.State+"%")
+	}
+
 	var reports *[]models.Report
-	if filters.Street == "" && filters.District == "" {
-		if err := db.Find(&reports).Error; err != nil {
-			c.JSON(404, gin.H{"error": "record not found"})
-			return
-		}
-	} else {
-		if filters.Street != "" && filters.District != "" {
-			if err := db.Where("street = ? AND district = ?", filters.Street, filters.District).Find(&reports).Error; err != nil {
-				c.JSON(404, gin.H{"error": "There is no report with this street and district"})
-				return
-			}
-		} else if filters.Street != "" {
-			if err := db.Where("street = ?", filters.Street).Find(&reports).Error; err != nil {
-				c.JSON(404, gin.H{"error": "record not found"})
-				return
-			}
-		} else if filters.District != "" {
-			if err := db.Where("district = ?", filters.District).Find(&reports).Error; err != nil {
-				c.JSON(404, gin.H{"error": "record not found"})
-				return
-			}
-		}
+	if err := query.Find(&reports).Error; err != nil {
+		c.JSON(404, gin.H{"error": "record not found"})
+		return
 	}
 
 	if len(*reports) == 0 {
@@ -117,7 +124,12 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 
 	var response []ReportResponse
 	for _, report := range *reports {
-		newResponse := ReportResponse{
+		if filters.Type != "" {
+			if report.Type != filters.Type {
+				continue
+			}
+		}
+		newResponse := &ReportResponse{
 			Id:          report.ID,
 			Username:    report.Username,
 			Anonymous:   report.Anonymous,
@@ -134,8 +146,7 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 		if newResponse.Anonymous == 1 {
 			newResponse.Username = "not available"
 		}
-
-		response = append(response, newResponse)
+		response = append(response, *newResponse)
 	}
 	if !filters.Reverse {
 		for i, j := 0, len(response)-1; i < j; i, j = i+1, j-1 {
@@ -144,6 +155,7 @@ func (db *StructRep) ReadAll(c *gin.Context) {
 	}
 
 	c.JSON(200, response)
+	return
 }
 
 type NearestReports struct {
@@ -153,7 +165,7 @@ type NearestReports struct {
 	HomeAddress bool    `json:"home_address" default:"false"`
 }
 
-func (db *StructRep) ReadNearest(c *gin.Context) {
+func (db *StructRep) ReadNearest(c *gin.Context, username string) {
 	var currentCoords NearestReports
 	var url = c.Request.URL.Query()
 
@@ -167,12 +179,30 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 		if url["range"] != nil {
 			currentCoords.Range, _ = strconv.ParseFloat(url["range"][0], 64)
 		}
+		if url["home_address"] != nil {
+			currentCoords.HomeAddress = true
+		}
 	}
 
 	var reports *[]models.Report
 	if err := db.Find(&reports).Error; err != nil {
 		c.JSON(404, gin.H{"error": "record not found"})
 		return
+	}
+
+	if currentCoords.HomeAddress {
+		var homeAddress []*models.Address
+		if err := db.Find(&homeAddress, "username = ?", username).Error; err != nil {
+			c.JSON(404, gin.H{"error": "home address not found"})
+			return
+		}
+		for _, address := range homeAddress {
+			if address.Default {
+				currentCoords.Lat = address.Lat
+				currentCoords.Lon = address.Lon
+				break
+			}
+		}
 	}
 
 	var response []ReportResponse
@@ -207,10 +237,9 @@ func (db *StructRep) ReadNearest(c *gin.Context) {
 			if distance.Distance <= currentCoords.Range {
 				response = append(response, newResponse)
 			}
-		} else {
-			response = append(response, newResponse)
+			continue
 		}
-
+		response = append(response, newResponse)
 	}
 
 	if len(response) == 0 {

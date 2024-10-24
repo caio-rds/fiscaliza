@@ -19,16 +19,12 @@ type addressResponse struct {
 	Lon        string  `json:"lon"`
 }
 
-type params struct {
-	Id *uint `uri:"id"`
-}
-
 func (db *Struct) Read(c *gin.Context, username *string) {
 
-	var p params
-	if err := c.ShouldBindUri(&p); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
+	var url = c.Request.URL.Query()
+	var onlyDefault = false
+	if url["only_default"] != nil {
+		onlyDefault = true
 	}
 
 	var address []*models.Address
@@ -51,18 +47,18 @@ func (db *Struct) Read(c *gin.Context, username *string) {
 			Lon:        adr.Lon,
 		}
 
-		if p.Id != nil && *p.Id == adr.ID {
+		if onlyDefault && adr.Default {
 			responseDefault = &response
-		} else {
-			userAddresses = append(userAddresses, &response)
+			break
 		}
+		userAddresses = append(userAddresses, &response)
 	}
 
-	if responseDefault != nil {
+	if onlyDefault && responseDefault != nil {
 		c.JSON(200, &responseDefault)
 		return
 	}
 
 	c.JSON(200, &userAddresses)
-
+	return
 }
