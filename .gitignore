@@ -12,18 +12,11 @@
 *.test
 *.out
 
-# Go workspace file
-go.work
-go.work.sum
-
-go.sum
 
 .idea/*
 .idea
 
 vendor/*
-
-
 
 db/*
 
