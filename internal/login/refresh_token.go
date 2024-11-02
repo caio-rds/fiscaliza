@@ -2,7 +2,6 @@ package login
 
 import (
 	"errors"
-	"fiscaliza/internal/auth"
 	"fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -17,7 +16,7 @@ func (db *Struct) RefreshToken(c *gin.Context) {
 	}
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-	claims, err := auth.ValidateToken(tokenString)
+	claims, err := ValidateToken(tokenString)
 
 	var user *models.User
 	db.Find(&user, "username = ?", claims.Username)
@@ -26,12 +25,12 @@ func (db *Struct) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	if err != nil && !errors.Is(err, auth.ErrTokenExpired) {
+	if err != nil && !errors.Is(err, ErrTokenExpired) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
 
-	newToken, err := auth.GenerateJwt(claims.Username)
+	newToken, err := GenerateJwt(claims.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return

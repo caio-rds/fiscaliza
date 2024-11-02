@@ -2,23 +2,19 @@ package database
 
 import (
 	"fiscaliza/internal/models"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"os"
+	"log"
 )
 
 func ConnectDB() *gorm.DB {
-	dsn := os.Getenv("DATABASE_URL")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+	db, err := gorm.Open(sqlite.Open("fiscaliza.db"), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatalln("failed to connect database: %v", err)
 	}
 	err = db.AutoMigrate(&models.User{}, &models.Report{}, &models.Recovery{}, &models.Address{})
 	if err != nil {
-		return nil
+		log.Fatalln("failed to migrate database: %v", err)
 	}
 
 	return db

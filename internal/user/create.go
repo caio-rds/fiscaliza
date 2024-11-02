@@ -1,8 +1,7 @@
 package user
 
 import (
-	"fiscaliza/internal/auth"
-	"fiscaliza/internal/crypt"
+	"fiscaliza/internal/login"
 	"fiscaliza/internal/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -94,7 +93,7 @@ func (db *Struct) Create(c *gin.Context) {
 	insert := models.User{
 		Username: data.Username,
 		Email:    data.Email,
-		Password: crypt.Password(data.Password),
+		Password: login.Password(data.Password),
 		Phone:    data.Phone,
 		Name:     data.Name,
 	}
@@ -106,7 +105,7 @@ func (db *Struct) Create(c *gin.Context) {
 		return
 	}
 
-	token, err := auth.GenerateJwt(insert.Username)
+	token, err := login.GenerateJwt(insert.Username)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),

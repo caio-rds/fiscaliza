@@ -1,7 +1,6 @@
 package login
 
 import (
-	"fiscaliza/internal/auth"
 	"fiscaliza/internal/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -24,7 +23,7 @@ func (db *Struct) AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		claims := &auth.Claims{}
+		claims := &Claims{}
 		var user *models.User
 		db.Find(&user, "username = ?", claims.Username)
 
@@ -35,7 +34,7 @@ func (db *Struct) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return auth.JwtKey, nil
+			return JwtKey, nil
 		})
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

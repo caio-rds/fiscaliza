@@ -17,7 +17,65 @@
 > Instale Go, Docker e Docker Compose ou PostGres em sua máquina.
 
 ### Há algumas maneiras de fazer isso
+
 #### 1. Docker / Docker Compose
+### Dockerfile
+```dockerfile
+FROM golang:1.22-alpine
+LABEL authors="caiords"
+
+WORKDIR /app
+
+EXPOSE 80
+EXPOSE 8080
+EXPOSE 8000
+
+ENV DATABASE_URL="postgresql://root:<SUA_SENHA>@<SUA_URL>:5432/fiscaliza?sslmode=disable
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -o main ./cmd
+
+CMD ["./main"]
+```
+
+### docker-compose.yaml
+```yaml
+services:
+  db:
+    image: postgres:13
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: SUA_SENHA
+      POSTGRES_DB: fiscaliza
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db:/var/lib/postgresql/data
+
+  app:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    container_name: fiscaliza_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://root:<SUA_SENHA>@db:5432/fiscaliza?sslmode=disable
+
+    command: ["./main"]
+
+volumes:
+    db:
+```
 >1.1 Clone o repositório e execute o comando `docker-compose up` na raiz do projeto.
 > 
 >1.2 Clone o repositório e execute o comando `docker build -t fiscaliza .` e depois `docker run -p 8080:8080 fiscaliza`.
@@ -34,10 +92,16 @@
 > 
 > Se preocupe apenas em criar o banco de dados e o restante será feito automaticamente.
 
+### Não esqueça de configurar o arquivo `.env` com as variáveis de ambiente.
+```env
+DATABASE_URL=<SUA_URL_DE_CONEXÃO>
+SG_KEY=<SUA_API_KEY>
+SG_TEMPLATE_ID=<SEU_TEMPLATE_ID>
+TWILIO_PHONE=<SEU_TELEFONE>
+TWILIO_SID=<SEU_SID>
+TWILIO_TOKEN=<SEU_TOKEN>
+```
+
 # Libs utilizadas no projeto
-- [Gin](https://gin-gonic.com/docs/)
-- [Gorm](https://gorm.io/docs/index.html)
-- [JWT](https://pkg.go.dev/github.com/golang-jwt/jwt/v5)
-- [Bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt)
-- [CORS](https://pkg.go.dev/github.com/gin-contrib/cors)
-- [PostGres Driver (PGX)](https://pkg.go.dev/github.com/jackc/pgx/v4)
+[Gin](https://gin-gonic.com/docs/), [Gorm](https://gorm.io/docs/index.html), [JWT](https://pkg.go.dev/github.com/golang-jwt/jwt/v5), [Bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt), [CORS](https://pkg.go.dev/github.com/gin-contrib/cors), 
+[PostGres Driver (PGX)](https://pkg.go.dev/github.com/jackc/pgx/v4)

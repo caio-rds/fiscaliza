@@ -1,4 +1,4 @@
-package websocket
+package reports
 
 import (
 	"encoding/json"
@@ -65,6 +65,7 @@ func Connections(c *gin.Context) {
 
 func SendMessage(message *Message) error {
 	if wsConn != nil {
+		message.Type = *GetReportTypeName(message.Type)
 		jsonMessage, err := json.Marshal(message)
 		if err != nil {
 			return err

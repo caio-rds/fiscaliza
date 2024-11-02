@@ -1,7 +1,7 @@
 package recovery
 
 import (
-	"fiscaliza/internal/crypt"
+	"fiscaliza/internal/login"
 	models "fiscaliza/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -51,7 +51,7 @@ func (db *Struct) ByCode(c *gin.Context) {
 		return
 	}
 
-	user.Password = crypt.Password(user.Password)
+	user.Password = login.Password(user.Password)
 
 	if err := db.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -90,13 +90,13 @@ func (db *Struct) BySimilarity(c *gin.Context) {
 		return
 	}
 
-	equalPassword := crypt.ComparePassword(user.Password, req.Password)
+	equalPassword := login.ComparePassword(user.Password, req.Password)
 	if !equalPassword {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid password"})
 		return
 	}
 
-	user.Password = crypt.Password(req.NewPassword)
+	user.Password = login.Password(req.NewPassword)
 
 	if err := db.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
